@@ -13,17 +13,17 @@ library(phytools)
 
 # Cargamos los datos
 ellenberg<-read.csv('~/Dropbox/Tesis/Rareza/Datos/EIV.csv')
-load("/home/hector/Dropbox/DATA__LAB/PHYLO/de_Hector/ArbolesPirineo_10_12_2020.RData")
-fp<-read.xlsx('~/Dropbox/DATA__LAB/__FLORA/FLORAPYR_REFERENCIAL/FLORAPYR_REFERENCIAL_10022021.xlsx',
-              sheet = 5)
+load("/home/hector/Dropbox/DATA__LAB/__FLORA/PHYLO/de_Hector/ArbolesPirineo_10_12_2020.RData")
+fp<-read.xlsx('~/Dropbox/DATA__LAB/__FLORA/FLORAPYR_REFERENCIAL/FLORAPYR_REFERENCIAL_17032022.xlsx',
+              sheet = 6)
 load("/home/hector/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Resultados/Valores_Rareza.RData")
 rm(tab_v2, tre)
 load("~/Dropbox/Tesis/Angiospermas FLORAPYR/Resultados/FLORAPYR_Grupos_WFO.RData")
 
 ellenberg<-read.csv('C:/Users/18172844S/Dropbox/Tesis/Rareza/Datos/EIV.csv')
-load("C:/Users/18172844S/Dropbox/DATA__LAB/PHYLO/de_Hector/ArbolesPirineo_10_12_2020.RData")
-fp<-read.xlsx('C:/Users/18172844S/Dropbox/DATA__LAB/__FLORA/FLORAPYR_REFERENCIAL/FLORAPYR_REFERENCIAL_10022021.xlsx',
-              sheet = 5)
+load("C:/Users/18172844S/Dropbox/DATA__LAB/__FLORA/PHYLO/de_Hector/ArbolesPirineo_10_12_2020.RData")
+fp<-read.xlsx('C:/Users/18172844S/Dropbox/DATA__LAB/__FLORA/FLORAPYR_REFERENCIAL/FLORAPYR_REFERENCIAL_17032022.xlsx',
+              sheet = 6)
 load("C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Resultados/Valores_Rareza.RData")
 rm(tab_v2, tre)
 load("C:/Users/18172844S/Dropbox/Tesis/Angiospermas FLORAPYR/Resultados/FLORAPYR_Grupos_WFO.RData")
@@ -50,7 +50,7 @@ eiv<-eiv %>% left_join(dplyr::select(fp, TAXON_REF_PYR_MOD, GENERO_RP, UTM10_RP,
 eiv$UTM10_RP<-ifelse(is.na(eiv$UTM10_RP), eiv$RA, eiv$UTM10_RP)
 eiv$UTM10_SP_FP<-ifelse(is.na(eiv$UTM10_SP_FP), eiv$RA, eiv$UTM10_SP_FP)
 
-eiv$RA_max<-apply(dplyr::select(eiv, c(UTM10_RP, UTM10_SP_FP, RA)), 1, max)
+eiv$RA_max<-as.numeric(apply(dplyr::select(eiv, c(UTM10_RP, UTM10_SP_FP, RA)), 1, max))
 
 
 # Quitamos las especies que aparezcan en menos de 3 inventarios (singletons y doubletons) y las que no esten en el arbol (Xatardia scabra basicamente)

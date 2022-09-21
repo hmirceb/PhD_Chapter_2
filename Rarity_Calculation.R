@@ -2,11 +2,12 @@ library(tidyverse)
 library(reshape2)
 library(openxlsx)
 library(corrgram)
+library(labdsv)
 
-load('C:/Users/18172844S/Dropbox/DATA__LAB/__VEGETACION_HABITATS/INVENTARIOS/PIRINEOS/SIVIM/REGISTROS_INV_SIVIM_100621.RData')
-load('~/Dropbox/DATA__LAB/__VEGETACION_HABITATS/INVENTARIOS/PIRINEOS/SIVIM/REGISTROS_INV_SIVIM_100621.RData')
-red_list<-read.xlsx('C:/Users/18172844S/Dropbox/DATA__LAB/__FLORA/CATALOGACION/CAT_FLORAPYR/Catalogadas_PIRINEOS/FLORA VASCULAR AMENAZADA DE PIRINEOS - LISTA ROJA 2019.xlsx')
-red_list<-read.xlsx('~/Dropbox/DATA__LAB/__FLORA/CATALOGACION/CAT_FLORAPYR/Catalogadas_PIRINEOS/FLORA VASCULAR AMENAZADA DE PIRINEOS - LISTA ROJA 2019.xlsx')
+load('C:/Users/18172844S/Dropbox/DATA__LAB/__VEGETACION_HABITATS/INVENTARIOS/PIRINEOS/SIVIM/R_SCRIPT/Input/Datos Registros_INV_SIVIM_100621.RData')
+load('~/Dropbox/DATA__LAB/__VEGETACION_HABITATS/INVENTARIOS/PIRINEOS/SIVIM/R_SCRIPT/Input/Datos Registros_INV_SIVIM_100621.RData')
+red_list<-read.xlsx('C:/Users/18172844S/Dropbox/DATA__LAB/__FLORA/CATALOGACION/CAT_FLORAPYR/Catalogadas_PIRINEOS/FLORAPYR_listaRoja_2019.xlsx')
+red_list<-read.xlsx('~/Dropbox/DATA__LAB/__FLORA/CATALOGACION/CAT_FLORAPYR/Catalogadas_PIRINEOS/FLORAPYR_listaRoja_2019.xlsx')
 
 SIVIM_rare<-SIVIM
 SIVIM_rare<-SIVIM_rare[SIVIM_rare$EUNIS_LEVEL_2_GROUPED != '',] #Quitamos habitats antropicos y sin definir
@@ -18,7 +19,6 @@ SIVIM_rare$ABUNDANCE_TRANS_MOD<-ifelse(SIVIM_rare$ABUNDANCE_TRANS == 0, 1,
                                        SIVIM_rare$ABUNDANCE_TRANS)
 SIVIM_rare$EUNIS_LEVEL_2_GROUPED <-ifelse(SIVIM_rare$EUNIS_LEVEL_2_GROUPED == 'Oromediterranean shrublands',
        'Garrigue', SIVIM_rare$EUNIS_LEVEL_2_GROUPED )
-unique(SIVIM_rare$EUNIS_LEVEL_2_GROUPED)
 
 # Contamos en cuantas UTM 10 aparece cada planta (Regional abundance RA) y creamos un df con esos datos
 a<-aggregate(UTM10~TAXON_REF_PYR, SIVIM_rare, table)
@@ -125,6 +125,40 @@ red_list<-red_list %>%
 
 Rareza<-left_join(Rareza, red_list, 'TAXON_REF_PYR_MOD')
 
+# Calculamos los indvals
+SIVIM_rare_sitesXsps<-SIVIM_rare %>%
+  dplyr::select(INV_CODE,
+                TAXON_REF_PYR,
+                ABUNDANCE_TRANS_MOD) %>%
+  group_by(INV_CODE, TAXON_REF_PYR) %>%
+  slice(which.max(ABUNDANCE_TRANS_MOD)) %>%
+  ungroup() %>%
+  pivot_wider(id_cols = INV_CODE,
+              names_from = TAXON_REF_PYR,
+              values_from = ABUNDANCE_TRANS_MOD,
+              values_fill = 0) %>% 
+  left_join(., SIVIM_rare %>%
+              dplyr::select(INV_CODE, EUNIS_LEVEL_2_GROUPED) %>%
+              distinct(),
+            'INV_CODE')
+
+indvalues<-SIVIM_rare_sitesXsps %>% 
+  dplyr::select(-c(INV_CODE, EUNIS_LEVEL_2_GROUPED)) %>% 
+  indval(x = .,
+         clustering = SIVIM_rare_sitesXsps$EUNIS_LEVEL_2_GROUPED,
+         numitr = 1000)
+
+indvalues_val<-as.data.frame(100*indvalues$indval)
+indvalues_val$TAXON_REF_PYR_MOD<-rownames(indvalues_val)
+Rareza<-pivot_longer(indvalues_val,
+             names_to = 'indval_hab',
+             cols = 1:14,
+             values_to = 'indval') %>%
+  group_by(TAXON_REF_PYR_MOD) %>%
+  slice(which.max(indval)) %>%
+  ungroup() %>%
+  left_join(Rareza, ., 'TAXON_REF_PYR_MOD')
+
 Frecuencia_por_habitat<-SIVIM_rare %>% 
   dplyr::select(c(TAXON_REF_PYR, EUNIS_LEVEL_2_GROUPED)) %>%
   group_by(TAXON_REF_PYR) %>%
@@ -149,6 +183,38 @@ SIVIM_rare %>%
             'EUNIS_LEVEL_2_GROUPED') %>%
   rename(EUNIS = EUNIS_LEVEL_2_GROUPED) %>%
   write.xlsx(file = '~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Resultados/Table_1_Habitats.xlsx')
+
+SIVIM_rare_sitesXsps<-SIVIM_rare %>%
+  dplyr::select(INV_CODE,
+                TAXON_REF_PYR,
+                ABUNDANCE_TRANS_MOD) %>%
+  group_by(INV_CODE, TAXON_REF_PYR) %>%
+  slice(which.max(ABUNDANCE_TRANS_MOD)) %>%
+  ungroup() %>%
+  pivot_wider(id_cols = INV_CODE,
+              names_from = TAXON_REF_PYR,
+              values_from = ABUNDANCE_TRANS_MOD,
+              values_fill = 0) %>% 
+  left_join(., SIVIM_rare %>%
+              dplyr::select(INV_CODE, EUNIS_LEVEL_2_GROUPED) %>%
+              distinct(),
+            'INV_CODE')
+
+indvalues<-SIVIM_rare_sitesXsps %>% 
+  dplyr::select(-c(INV_CODE, EUNIS_LEVEL_2_GROUPED)) %>% 
+  indval(x = .,
+         clustering = SIVIM_rare_sitesXsps$EUNIS_LEVEL_2_GROUPED,
+         numitr = 1000)
+
+indvalues_val<-as.data.frame(100*indvalues$indval)
+indvalues_val$TAXON_REF_PYR<-rownames(indvalues_val)
+pivot_longer(indvalues_val,
+             names_to = 'indval_hab',
+             cols = 1:14,
+             values_to = 'indval') %>%
+  group_by(TAXON_REF_PYR) %>%
+  slice(which.max(indval)) %>%
+  left_join(Rareza, .)
 
 save(Rareza, Frecuencia_por_habitat, file = '~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Resultados/Valores_Rareza.RData')
 save(Rareza, Frecuencia_por_habitat, file = 'C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Resultados/Valores_Rareza.RData')

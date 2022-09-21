@@ -12,13 +12,14 @@ library(insight)
 library(rstanarm)
 library(gridExtra)
 library(phytools)
+library(patchwork)
 
 load("C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Resultados/Valores_Rareza.RData")
 load("~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Resultados/Valores_Rareza.RData")
 load("C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Resultados/FiloSignal_Rareza_scaled_All.RData")
 load('~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Resultados/FiloSignal_Rareza_scaled_All.RData')
-load("C:/Users/18172844S/Dropbox/DATA__LAB/PHYLO/de_Hector/ArbolesPirineo_10_12_2020.RData")
-load("~/Dropbox/DATA__LAB/PHYLO/de_Hector/ArbolesPirineo_10_12_2020.RData")
+load("C:/Users/18172844S/Dropbox/DATA__LAB/__FLORA/PHYLO/de_Hector/ArbolesPirineo_10_12_2020.RData")
+load("~/Dropbox/DATA__LAB/__FLORA/PHYLO/de_Hector/ArbolesPirineo_10_12_2020.RData")
 load("C:/Users/18172844S/Dropbox/Tesis/Angiospermas FLORAPYR/Resultados/FLORAPYR_Grupos_WFO.RData")
 load("~/Dropbox/Tesis/Angiospermas FLORAPYR/Resultados/FLORAPYR_Grupos_WFO.RData")
 
@@ -56,21 +57,23 @@ data_all$end_color<-ifelse(data_all$Endemic == 1 & data_all$LIPA_Endemic_pval <=
                                   '2', '3'))
 q<-ggtree(tree_figure, layout = 'fan') %<+% data_all
 
+# Colores de https://personal.sron.nl/~pault/
+cols_endemic<-c("1" = "#ffffff", "2" = "#979797", '3' = "#ffffff")
+cols_RA<-c("TRUE" = "#BB5566", "FALSE" = "#b2bed14D")
+cols_HS<-c("TRUE" = "#004488", "FALSE" = "#b2bed14D")
+cols_LA<-c("TRUE" = "#DDAA33", "FALSE" = "#b2bed14D")
 
-cols_endemic<-c("1" = "#FF8C00BF", "2" = "#979797", '3' = "#ffffff")
-cols_RA<-c("TRUE" = "firebrick", "FALSE" = "#b2bed14D")
-cols_HS<-c("TRUE" = "steelblue", "FALSE" = "#b2bed14D")
-cols_LA<-c("TRUE" = "forestgreen", "FALSE" = "#b2bed14D")
 
 p<-q + geom_tippoint(
   mapping=aes(color= end_color, fill = end_color, size = end_color,
               alpha = end_color, group = rev(end_color), x = x+12,
-              stroke = 1),
+              stroke = 1, shape = end_color),
   position="identity")+
-  scale_color_manual(values = cols_endemic)+
+  scale_color_manual(values = c("1" = "#000000", "2" = "#979797", '3' = "#ffffff"))+
   scale_fill_manual(values = cols_endemic)+
-  scale_alpha_manual(values = c('1' = 1, '2' = 0.4, '3' = 0))+
+  scale_alpha_manual(values = c('1' = 1, '2' = 0.2, '3' = 0))+
   scale_size_manual(values = c('1' = 3, '2' = 2, '3' = 0))+
+  scale_shape_manual(values = c('1' = 21, '2' = 21, '3' = 1))+
   theme(legend.position = 'none',
         plot.margin=grid::unit(c(0,0,0,0), "mm"))
 
@@ -90,28 +93,31 @@ p2<-p1+new_scale_fill()+new_scale_color()+geom_fruit(
 )+scale_color_manual(values = cols_HS, name = "HS LIPA sig")+
   scale_fill_manual(values = cols_HS, name = "HS LIPA sig")
 
-p3<-p2+new_scale_fill()+new_scale_color()+geom_fruit(
+Fig2<-p2+new_scale_fill()+new_scale_color()+geom_fruit(
   geom = geom_bar,
   mapping = aes(y = TAXON_REF_PYR_MOD, x = scale(LA),
                 color = LIPA_LA_pval < 0.05, fill = LIPA_LA_pval < 0.05),
   stat = 'identity', orientation = 'y'
 )+scale_color_manual(values = cols_LA, name = "LA LIPA sig")+
-  scale_fill_manual(values = c('Endemic' = '#FF8C00BF', 
-                               'RGR' = 'firebrick',
-                               'HS' = 'steelblue',
-                               'LS' = 'forestgreen'), 
+  scale_fill_manual(values = c('Endemic' = '#ffffff', 
+                               'RGR' = '#BB5566',
+                               'HS' = '#004488',
+                               'LS' = '#DDAA33'), 
                     name = "Rarity type:")
-p3
+Fig2
 
-ggsave(p3, filename = '~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_2_Tree.jpeg', 
+ggsave(Fig2, filename = '~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_2_Tree.jpeg', 
        height = 29, width = 29, units = 'cm')
-ggsave(p3, filename = 'C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_2_Tree.jpeg', 
+ggsave(Fig2, filename = 'C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_2_Tree.jpeg', 
        height = 29, width = 29, units = 'cm')
 
 
 #### Figure 1 ####
 # Boxplot de la senyal filo ####
-cols_boxplot<-c('Endemic' = "#FF8C00BF", 'RGR' = 'firebrick', 'HS' = 'steelblue', 'LA' = 'forestgreen')
+cols_boxplot<-c('Endemic' = "#ffffff", 
+                'RGR' = '#BB5566',
+                'HS' = '#004488', 
+                'LA' = '#DDAA33')
 
 signal<-do.call('rbind', lapply(signal_all, function(x) 
   data.frame('rarity' = rownames(x$stat),
@@ -133,8 +139,7 @@ boxplot_signal<-ggplot(dat_signal, aes(x = Rarity, y = lambda, fill = Rarity))+g
   theme(text = element_text(size = 20),
         strip.text = element_text(face = 'bold'),
         legend.position = 'none')+
-  scale_fill_manual(values = cols_boxplot, name = 'Rarity type')+
-  ggtitle('(a)')
+  scale_fill_manual(values = cols_boxplot, name = 'Rarity type')
 
 boxplot_signal
 
@@ -161,25 +166,33 @@ ses_loss_plot<-aaa %>%
   geom_segment(aes(yend = ses, y = 0, xend = Rarity),
                linetype = 'dashed', size = 0.7)+
   theme_classic()+
-  geom_point(aes(y = ses, color = Rarity), size = 3)+
-  scale_color_manual(values = c('Endemic' = '#FF8C00', 
-                                'RGR' = 'firebrick',
-                                'HS' = 'steelblue',
-                                'LA' = 'forestgreen'), 
+  geom_point(aes(y = ses, color = Rarity, fill = Rarity), size = 3.5, shape = 21)+
+  scale_color_manual(values = c('Endemic' = '#000000', 
+                                'RGR' = '#BB5566',
+                                'HS' = '#004488',
+                                'LA' = '#DDAA33'), 
                      name = "Rarity type:", guide = 'none')+
+  scale_fill_manual(values = c('Endemic' = '#ffffff', 
+                               'RGR' = '#BB5566',
+                               'HS' = '#004488',
+                               'LA' = '#DDAA33'), 
+                    name = "Rarity type:", guide = 'none')+
   theme(text = element_text(size = 20))+
   ylab('Standard effect size of PD loss')+
   xlab('Rarity type')+
   annotate(geom = 'rect', ymin = -1.96, 
            ymax = 1.96, xmin = 0, xmax = 5,
-           alpha = 0.1)+
-  ggtitle('(b)')
+           alpha = 0.1)
 
-ggsave(grid.arrange(boxplot_signal, ses_loss_plot, ncol = 2), 
+Fig1<-boxplot_signal+ses_loss_plot+plot_annotation(tag_levels = 'a',
+                                             tag_prefix = '(',
+                                             tag_suffix = ')')
+
+ggsave(Fig1, 
        filename = 'C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_1_Boxplot_And_Loss.jpeg',
        scale = 1.5, dpi = 300)
 
-ggsave(grid.arrange(boxplot_signal, ses_loss_plot, ncol = 2), 
+ggsave(Fig1, 
        filename = '~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_1_Boxplot_And_Loss.jpeg',
        scale = 1.5, dpi = 300)
 
@@ -221,77 +234,9 @@ var_prop<-ggplot(var_prop_data,
   theme_classic()+
   ylab('Variation explained (%)')+
   xlab('Rarity type')+
-  ggtitle('(a)')+
   theme(text = element_text(size = 20),
         legend.position = 'bottom')+
   scale_fill_manual(values=c( 'gray90', "#009E73", "#D55E00", "mediumorchid4"))
-
-### Table outputs ####
-#a<-eiv %>%
-  dplyr::select(c(TAXON_REF_PYR_MOD, FAMILIA_WFO, Order)) %>%
-  left_join(data_all, 'TAXON_REF_PYR_MOD') %>%
-  filter(scale(B_h) < 0 & LIPA_B_h_pval < 0.05) %>%
-  mutate(Rarity = 'HS') %>%
-  bind_rows(eiv %>%
-              dplyr::select(c(TAXON_REF_PYR_MOD, FAMILIA_WFO, Order)) %>%
-              left_join(data_all, 'TAXON_REF_PYR_MOD') %>%
-              filter(scale(RA_max) < 0 & LIPA_RA_max_pval < 0.05) %>%
-              mutate(Rarity = 'RGR')) %>%
-  bind_rows(eiv %>%
-              dplyr::select(c(TAXON_REF_PYR_MOD, FAMILIA_WFO, Order)) %>%
-              left_join(data_all, 'TAXON_REF_PYR_MOD') %>%
-              filter(scale(LA) < 0 & LIPA_LA_pval < 0.05) %>%
-              mutate(Rarity = 'LA')) %>%
-  bind_rows(eiv %>%
-              dplyr::select(c(TAXON_REF_PYR_MOD, FAMILIA_WFO, Order)) %>%
-              left_join(data_all, 'TAXON_REF_PYR_MOD') %>%
-              filter(Endemic == 1 & LIPA_Endemic_pval < 0.05) %>%
-              mutate(Rarity = 'Endemic')) %>%
-  distinct() %>%
-  dplyr::select(-c(LIPA_Endemic, LIPA_RA_max,
-                   LIPA_LA, LIPA_B_h, LIPA_Endemic_pval, LIPA_RA_max_pval,
-                   LIPA_LA_pval,LIPA_B_h_pval)) %>%
-  left_join(Frecuencia_por_habitat %>%
-              group_by(TAXON_REF_PYR_MOD) %>%
-              filter(n == max(n)) %>% 
-              filter(row_number()==1) %>%
-              distinct(), 'TAXON_REF_PYR_MOD') %>%
-  dplyr::rename(Species = TAXON_REF_PYR_MOD, Family = FAMILIA_WFO,
-         RGR = RA_max, HS = B_h, `Main habitat` = EUNIS_LEVEL_2_GROUPED) %>% 
-  dplyr::select(-n) %>% 
-  dplyr::select(c(Species, Family, Order, Endemic, RGR, HS, LA, Rarity, Red_list, `Main habitat`))
-a %>% view
-
-#a %>%
-  dplyr::select(c(Species, Rarity)) %>%
-  mutate(Value = Rarity) %>%
-  pivot_wider(values_from = Value, id_cols = Species, values_fill = NA, names_from = Rarity) %>%
-  replace(is.na(.), '') %>%
-  mutate(Rarity = paste(Endemic, RGR, HS, LA)) %>%
-  mutate(Rarity = str_trim(Rarity)) %>%
-  dplyr::select(c(Species, Rarity)) %>%
-  left_join(a %>% dplyr::select(-Rarity), 'Species') %>%
-  dplyr::rename(`Red list status` = Red_list) %>%
-  dplyr::select(c(Species, Family, Order, Rarity, `Red list status`, Endemic, RGR, HS, LA, Rarity, `Main habitat`)) %>%
-  distinct() %>%
-  xlsx::write.xlsx(file = 'LIPA_significant.xlsx')
-
-
-#eiv %>%
-  group_by(FAMILIA_WFO) %>%
-  summarise(RGR = round(mean(as.numeric(RA_max)), 2), RGR_sd = round(sd(as.numeric(RA_max)), 2),
-            HS = round(mean(B_h), 2), HS_sd = round(sd(B_h), 2),
-            LAbu = round(mean(LA), 2), LA_sd = round(sd(LA), 2),
-            Endemic = sum(Endemic == 'End'),
-            N = n()) %>%
-  mutate(RGR_ = paste(RGR, ' ', '(', RGR_sd, ')', sep = ''),
-         HS_ = paste(HS, ' ', '(', HS_sd, ')', sep = ''),
-         LA_ = paste(LAbu, ' ', '(', LA_sd, ')', sep = '')) %>%
-  dplyr::rename(Family = FAMILIA_WFO) %>%
-  left_join(ranef_families, 'Family') %>%
-  dplyr::select(c(Family, N, Endemic, RGR_, HS_, LA_, Beta.Endemic, Beta.RGR, Beta.HS, Beta.LA)) %>%
-  dplyr::rename(RGR = RGR_, HS = HS_, LA = LA_) %>%
-  xlsx::write.xlsx(file = '~/Familia_mean.xlsx')
 
 
 #### PCA filo ####
@@ -355,9 +300,9 @@ phylo_pca<-pca_list_scores %>%
   geom_hline(yintercept = 0, alpha = 0.5, linetype = 'dashed')+
   geom_point(aes(alpha = ifelse(Red_list_simple != 'No' |
                                   Endemic == 'End', 1, 0.3),
-                 fill = Red_list_simple,
+                 fill = Color,
                  color = Color,
-                 shape = Endemic,
+                 shape = Color,
                  size = Color))+
   geom_segment(data = pca_list_loadings,
                inherit.aes = F, 
@@ -370,53 +315,67 @@ phylo_pca<-pca_list_scores %>%
             color = '#C30E2D', 
             fontface = 'bold')+
   theme_classic()+
-  scale_fill_manual(values = c('No' = 'black',
-                               'Threatened' = 'red'),
-                    name = 'Red List: ')+
-  scale_color_manual(values = c('End No' = 'white',
+  scale_fill_manual(values = c('End No' = 'white',
+                               'End Threatened' = 'red',
+                               'NoEnd No' = 'black',
+                               'NoEnd Threatened' = 'red'),
+                    name = 'Red List:',
+                    breaks = c('NoEnd No', 'NoEnd Threatened'),
+                    labels = c('No', 'Threatened'))+
+  scale_color_manual(values = c('End No' = 'black',
                                 'End Threatened' = 'black',
                                 'NoEnd No' = 'black',
                                 'NoEnd Threatened' = 'black'),
-                     name = 'Red List: ',
-                     guide = 'none')+
+                     name = 'Red List:')+
   scale_size_manual(values = c('End No' = 4,
-                                'End Threatened' = 4,
-                                'NoEnd No' = 3,
-                                'NoEnd Threatened' = 4),
-                     name = 'Red List: ',
-                     guide = 'none')+
-  scale_shape_manual(values = c('NoEnd' = 21, 'End' = 22), 
-                     guide = 'none')+
+                               'End Threatened' = 4,
+                               'NoEnd No' = 3,
+                               'NoEnd Threatened' = 4),
+                    name = 'Red List:')+
+  scale_shape_manual(values = c('End No' = 22,
+                                'End Threatened' = 22,
+                                'NoEnd No' = 21,
+                                'NoEnd Threatened' = 21),
+                     breaks = c('End No', 'NoEnd No'),
+                     labels = c('Yes', 'No'),
+                     name = 'Pyrenean endemic:')+
   scale_alpha_continuous(guide = 'none')+
-  ggtitle('(b)')+
   theme(text = element_text(size = 20),
-        legend.position = 'bottom')+
+        legend.position = 'bottom',
+        legend.box = 'vertical')+
   guides(color = 'none',
          size = 'none',
          fill = guide_legend(override.aes = list(size = 7,
-                                                 shape = 21, 
-                                                 color = 'black')))+
+                                                 shape = c(21))),
+         shape = guide_legend(override.aes = list(size = 7,
+                                                  fill = 'grey')))+
   coord_fixed(xlim = range(pca_list_scores$PC1), ylim = range(pca_list_scores$PC2))+
-  xlab(paste('PC1 ', '(', pc_variance[1], '% explained variance)', sep = ''))+
-  ylab(paste('PC2 ', '(', pc_variance[2], '% explained variance)', sep = ''))
+  xlab(paste('PC1 ', '(', pc_variance[1], '%)', sep = ''))+
+  ylab(paste('PC2 ', '(', pc_variance[2], '%)', sep = ''))
+
 phylo_pca
 
 
 ### Figure 3 ####
-Multipanel<-grid.arrange(var_prop+coord_flip(),
-                         phylo_pca,
-                         nrow = 1, ncol = 2)
-ggsave(Multipanel,
-       filename = 'C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Fig_3_Partition_PCA.jpeg',
+Fig3<-(var_prop+coord_flip())/phylo_pca+
+  plot_annotation(tag_levels = 'a',
+                  tag_prefix = '(',
+                  tag_suffix = ')')
+
+ggsave(Fig3,
+       filename = 'C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Fig_3_Partition_PCA2.jpeg',
        dpi = 300,
        scale = 1.8)
-ggsave(Multipanel,
+ggsave(Fig3,
        filename = '~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Fig_3_Partition_PCA.jpeg', 
        dpi = 300,
        scale = 1.8)
 
 #### Supp mat Figure 1 ####
-cols_boxplot<-c('Endemic' = "#FF8C00BF", 'RGR' = 'firebrick', 'HS' = 'steelblue', 'LA' = 'forestgreen')
+cols_boxplot<-c('Endemic' = "#ffffff", 
+                'RGR' = '#BB5566',
+                'HS' = '#004488', 
+                'LA' = '#DDAA33')
 
 signal_supp<-rbind(do.call('rbind', lapply(signal_angios, function(x) 
   data.frame('rarity' = rownames(x$stat),
@@ -427,13 +386,13 @@ signal_supp<-rbind(do.call('rbind', lapply(signal_angios, function(x)
     data.frame('rarity' = rownames(x$stat),
                'lambda' = x$stat$Lambda, 
                'p_val' = x$pvalue$Lambda, 
-               'group' = 'Gimnosperms & Pteridophytes'))))
+               'group' = 'Gimnosperms & Monilophytes'))))
 
 dat_signal_supp<-signal_supp %>%
   mutate(rarity=dplyr::recode(rarity, 
                               RA_max = 'RGR',
                               B_h = 'HS')) %>%
-  mutate(rarity = factor(rarity, levels = c('LA', 'HS', 'RGR', 'Endemic'))) %>%
+  mutate(rarity = factor(rarity, levels = c('Endemic', 'RGR', 'HS', 'LA'))) %>%
   dplyr::rename(Rarity = rarity) %>%
   filter(!is.na(p_val))
 dat_text<-dat_signal_supp %>%
@@ -462,28 +421,166 @@ ggsave(boxplot_signal_supp, scale = 1.5,
 
 
 #### TIFFs ####
-ggsave(grid.arrange(boxplot_signal, ses_loss_plot, ncol = 2), 
+ggsave(Fig1, 
        filename = 'C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_1_Boxplot_And_Loss.tiff',
-       scale = 1.5, dpi = 300, compression = 'jpeg')
+       scale = 2, dpi = 300, compression = 'jpeg')
 
-ggsave(grid.arrange(boxplot_signal, ses_loss_plot, ncol = 2), 
+ggsave(Fig1, 
        filename = '~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_1_Boxplot_And_Loss.tiff',
-       scale = 1.5, dpi = 300, compression = 'jpeg')
+       scale = 1.3, dpi = 300, compression = 'jpeg')
 
 
-ggsave(p3, filename = '~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_2_Tree.tiff', 
-       height = 29, width = 29, units = 'cm',
+ggsave(Fig2, filename = '~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_2_Tree.tiff', 
+       scale = 4, dpi = 300, 
        compression = 'jpeg')
-ggsave(p3, filename = 'C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_2_Tree.tiff', 
-       height = 29, width = 29, units = 'cm',
+ggsave(Fig2, filename = 'C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Figure_2_Tree.tiff', 
+       scale = 4, dpi = 300,
        compression = 'jpeg')
 
 
-ggsave(Multipanel,
+ggsave(Fig3,
        filename = 'C:/Users/18172844S/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Fig_3_Partition_PCA.tiff',
-       dpi = 300,
-       scale = 1.8, compression = 'jpeg')
-ggsave(Multipanel,
+       scale = 4, dpi = 300,
+       compression = 'jpeg')
+ggsave(Fig3,
        filename = '~/Dropbox/DATA__LAB/Hector_tesis/Cap. 2 - Senal Filogenetica en la rareza del Pirineo/Figures and tables/Fig_3_Partition_PCA.tiff', 
-       dpi = 300,
-       scale = 1.8, compression = 'jpeg')
+       scale = 4, dpi = 300, 
+       compression = 'jpeg')
+
+### Table outputs ####
+a<-eiv %>%
+  dplyr::select(c(TAXON_REF_PYR_MOD, FAMILIA_WFO, Order)) %>%
+  left_join(data_all, 'TAXON_REF_PYR_MOD') %>%
+  filter(scale(B_h) < 0 & LIPA_B_h_pval < 0.05) %>%
+  mutate(Rarity = 'HS') %>%
+  bind_rows(eiv %>%
+              dplyr::select(c(TAXON_REF_PYR_MOD, FAMILIA_WFO, Order)) %>%
+              left_join(data_all, 'TAXON_REF_PYR_MOD') %>%
+              filter(scale(RA_max) < 0 & LIPA_RA_max_pval < 0.05) %>%
+              mutate(Rarity = 'RGR')) %>%
+  bind_rows(eiv %>%
+              dplyr::select(c(TAXON_REF_PYR_MOD, FAMILIA_WFO, Order)) %>%
+              left_join(data_all, 'TAXON_REF_PYR_MOD') %>%
+              filter(scale(LA) < 0 & LIPA_LA_pval < 0.05) %>%
+              mutate(Rarity = 'LA')) %>%
+  bind_rows(eiv %>%
+              dplyr::select(c(TAXON_REF_PYR_MOD, FAMILIA_WFO, Order)) %>%
+              left_join(data_all, 'TAXON_REF_PYR_MOD') %>%
+              filter(Endemic == 1 & LIPA_Endemic_pval < 0.05) %>%
+              mutate(Rarity = 'Endemic')) %>%
+  distinct() %>%
+  dplyr::select(-c(LIPA_Endemic, LIPA_RA_max,
+                   LIPA_LA, LIPA_B_h, LIPA_Endemic_pval, LIPA_RA_max_pval,
+                   LIPA_LA_pval,LIPA_B_h_pval)) %>%
+  left_join(Frecuencia_por_habitat %>%
+              group_by(TAXON_REF_PYR_MOD) %>%
+              filter(n == max(n)) %>% 
+              filter(row_number()==1) %>%
+              distinct(), 'TAXON_REF_PYR_MOD') %>%
+  left_join(Rareza %>%
+              dplyr::select(c(TAXON_REF_PYR_MOD, indval_hab, indval)), 'TAXON_REF_PYR_MOD') %>%
+  dplyr::rename(Species = TAXON_REF_PYR_MOD, Family = FAMILIA_WFO,
+                RGR = RA_max, HS = B_h, `Main habitat` = EUNIS_LEVEL_2_GROUPED) %>% 
+  dplyr::select(-n) %>% 
+  dplyr::select(c(Species, Family, Order, Endemic, RGR, HS, LA, Rarity, Red_list, `Main habitat`, indval_hab))
+a %>% view
+
+a %>%
+  dplyr::select(c(Species, Rarity)) %>%
+  mutate(Value = Rarity) %>%
+  pivot_wider(values_from = Value, id_cols = Species, values_fill = NA, names_from = Rarity) %>%
+  replace(is.na(.), '') %>%
+  mutate(Rarity = paste(Endemic, RGR, HS, LA)) %>%
+  mutate(Rarity = str_trim(Rarity)) %>%
+  dplyr::select(c(Species, Rarity)) %>%
+  left_join(a %>% dplyr::select(-Rarity), 'Species') %>%
+  dplyr::rename(`Red list status` = Red_list) %>%
+  dplyr::select(c(Species, Family, Order, Rarity, `Red list status`, Endemic, RGR, HS, LA, Rarity, indval_hab)) %>%
+  rename(`Main habitat` = indval_hab) %>%
+  distinct()
+
+b<-a %>%
+  dplyr::select(c(Species, Rarity)) %>%
+  mutate(Value = Rarity) %>%
+  pivot_wider(values_from = Value, id_cols = Species, values_fill = NA, names_from = Rarity) %>%
+  replace(is.na(.), '') %>%
+  mutate(Rarity = paste(Endemic, RGR, HS, LA)) %>%
+  mutate(Rarity = str_trim(Rarity)) %>%
+  dplyr::select(c(Species, Rarity)) %>%
+  left_join(a %>% dplyr::select(-Rarity), 'Species') %>%
+  dplyr::rename(`Red list status` = Red_list) %>%
+  dplyr::select(c(Species, Family, Order, Rarity, `Red list status`, Endemic, RGR, HS, LA, Rarity, indval_hab)) %>%
+  rename(`Main habitat` = indval_hab) %>%
+  distinct()
+
+b<-b %>% 
+  mutate(across(RGR:LA, round, 2)) %>%
+  mutate(across(RGR:LA, as.character)) 
+
+b %>%
+  filter(Rarity == 'HS') %>%
+  mutate(HS = paste(HS, '*')) %>%
+  bind_rows(b %>% 
+              filter(Rarity == 'RGR') %>%
+              mutate(RGR = paste(RGR, '*'))) %>%
+  bind_rows(b %>% 
+              filter(Rarity == 'LA') %>%
+              mutate(LA = paste(LA, '*'))) %>%
+  bind_rows(b %>% 
+              filter(Rarity == 'Endemic') %>%
+              mutate(Endemic = paste(Endemic, '*'))) %>%
+  bind_rows(b %>% 
+              filter(Rarity == 'HS LA') %>%
+              mutate(LA = paste(LA, '*')) %>%
+              mutate(HS = paste(HS, '*'))) %>%
+  bind_rows(b %>% 
+              filter(Rarity == 'Endemic   LA') %>%
+              mutate(LA = paste(LA, '*')) %>%
+              mutate(Endemic = paste(Endemic, '*'))) %>%
+  bind_rows(b %>% 
+              filter(Rarity == 'RGR HS') %>%
+              mutate(RGR = paste(RGR, '*')) %>%
+              mutate(HS = paste(HS, '*'))) %>%
+  bind_rows(b %>% 
+              filter(Rarity == 'RGR  LA') %>%
+              mutate(LA = paste(LA, '*')) %>%
+              mutate(RGR = paste(RGR, '*'))) %>%
+  dplyr::select(-Rarity) %>%
+  xlsx::write.xlsx(file = 'LIPA_significant.xlsx')
+
+
+eiv %>%
+  group_by(FAMILIA_WFO) %>%
+  summarise(N = n(),
+            RGR = round(mean(as.numeric(RA_max)), 2), RGR_sd = round(sd(as.numeric(RA_max)), 2),
+            N_RGR = sum(scale(as.numeric(RA_max)) < 0),
+            HS = round(mean(B_h), 2), HS_sd = round(sd(B_h), 2),
+            N_HS = sum(scale(B_h) < 0),
+            LAbu = round(mean(LA), 2), LA_sd = round(sd(LA), 2),
+            N_LAbu = sum(scale(LA) < 0),
+            Endemic = sum(Endemic == 'End'),
+            All = sum(scale(as.numeric(RA_max)) < 0 & 
+                        scale(B_h) < 0 & 
+                        scale(LA) < 0 )) %>%
+  mutate(RGR_ = paste(RGR, ' ', '(', RGR_sd, ')', sep = ''),
+         HS_ = paste(HS, ' ', '(', HS_sd, ')', sep = ''),
+         LA_ = paste(LAbu, ' ', '(', LA_sd, ')', sep = ''),
+         Endemic_ = paste(Endemic, ' ', '(', round(Endemic/N, 2), ')', sep = ''),
+         N_RGR_ = paste(N_RGR, ' ', '(', round(N_RGR/N, 2), ')', sep = ''),
+         N_HS_ = paste(N_HS, ' ', '(', round(N_HS/N, 2), ')', sep = ''),
+         N_LA_ = paste(N_LAbu, ' ', '(', round(N_LAbu/N, 2), ')', sep = '')) %>%
+  dplyr::rename(Family = FAMILIA_WFO) %>%
+  dplyr::select(c(Family, N, Endemic_, RGR_, N_RGR_, HS_, N_HS_, LA_, N_LA_)) %>%
+  dplyr::rename(RGR = RGR_, HS = HS_, LA = LA_, N_LA = N_LA_,
+                Endemic = Endemic_, N_RGR = N_RGR_, N_HS = N_HS_) %>%
+  xlsx::write.xlsx(file = '~/Familia_mean.xlsx')
+
+Rareza %>%
+  dplyr::select(c(TAXON_REF_PYR_MOD, indval_hab)) %>%
+  left_join(data_all, 'TAXON_REF_PYR_MOD') %>%
+  filter(Endemic == 1 &
+           scale(LA) < 0 &
+           scale(RA_max) < 0 &
+           scale(B_h) < 0) %>%
+  left_join(eiv %>% dplyr::select(TAXON_REF_PYR_MOD, FAMILIA_WFO, Order)) %>%
+  xlsx::write.xlsx(file = '~/Rarest.xlsx')
